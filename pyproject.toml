@@ -16,3 +16,26 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fraud_service"]
+
+[project.optional-dependencies]
+dev = ["httpx", "pytest", "pytest-cov", "ruff", "mypy"]
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers --cov=fraud_service --cov-branch --cov-report=term-missing"
+markers = [
+  "unit: fast, no I/O",
+  "integration: app-level via TestClient",
+  "behavioural: exercises the real model artefact",
+  "slow: excluded from the per-commit gate",
+]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["src/fraud_service"]
+omit = [
+    "src/fraud_service/adapters/*",
+    "src/fraud_service/batch.py",
+]
+
+[tool.coverage.report]
+fail_under = 80

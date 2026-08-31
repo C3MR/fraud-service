@@ -46,3 +46,8 @@ class Decision(StrEnum):
     REVIEW = "review"
     BLOCK = "block"
 
+class FraudScore(BaseModel):
+    transaction_id: str
+    probability: float
+    decision: Decision
+    model_version: str
