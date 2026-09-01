@@ -2,7 +2,12 @@ import time
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from fraud_service.api.schemas import HealthResponse, PredictRequest, PredictResponse, ReadyResponse
+from fraud_service.api.schemas import (
+    HealthResponse,
+    PredictRequest,
+    PredictResponse,
+    ReadyResponse,
+)
 from fraud_service.logging_setup import get_logger
 from fraud_service.service.scorer import FraudScorer
 
@@ -26,7 +31,7 @@ def get_scorer(request: Request) -> FraudScorer:
 # in-flight request until it finishes.
 @router.post("/predict", response_model=PredictResponse)
 def predict(body: PredictRequest, request: Request,
-           scorer: FraudScorer = Depends(get_scorer)) -> PredictResponse:
+            scorer: FraudScorer = Depends(get_scorer)) -> PredictResponse:  # noqa: B008
     t0 = time.perf_counter()
     score = scorer.score(body.to_domain())
     log.info("prediction_served",

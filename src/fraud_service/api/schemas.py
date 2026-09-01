@@ -24,9 +24,8 @@ class PredictRequest(BaseModel):
         # bool is a subclass of int in Python - JSON true/false would
         # otherwise silently coerce to 1.0/0.0 and pass the gt/le checks.
         if isinstance(v, bool):
-            raise ValueError("amount_sar must be a number, not a boolean")
+            raise ValueError("amount_sar must be a number, not a boolean")  # noqa: TRY004
         return v
-
     @field_validator("merchant_category")
     @classmethod
     def reject_blank_mcc(cls, v: str) -> str:
