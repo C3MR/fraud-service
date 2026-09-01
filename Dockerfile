@@ -6,11 +6,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 COPY pyproject.toml README.md ./
+RUN pip install --no-cache-dir "fastapi[standard]" uvicorn pandas scikit-learn joblib \
+    "pydantic>=2" pydantic-settings structlog
+
 COPY src/ src/
-RUN python -m venv /opt/venv \
-    && /opt/venv/bin/pip install --no-cache-dir "fastapi[standard]" uvicorn pandas scikit-learn joblib pydantic \
-    && /opt/venv/bin/pip install --no-cache-dir --no-deps .
+RUN pip install --no-cache-dir --no-deps .
 
 # ---------- Stage 2: runtime ----------
 FROM python:3.12-slim AS runtime

@@ -49,6 +49,21 @@ hey -n 2000 -c 50 -m POST -H "content-type: application/json" \
 | Latency mean   |  479.1 ms |
 | Non-2xx        |         0 |
 
+## Image size — naive vs multi-stage (Lab 3)
+
+| Build            | Size       | Notes                                                   |
+| ---------------- | ---------: | ------------------------------------------------------- |
+| Naive (1 stage)  | **1.47 GB** | `COPY . .`, `build-essential` + pip cache kept in image |
+| Multi-stage      | **783 MB**  | builder stage discarded; runtime carries only the venv  |
+| **Reduction**    | **~690 MB (−47%)** | discipline: throw away the toolchain, keep the venv |
+
+The multi-stage build compiles/installs in a builder stage that has the full
+toolchain, then copies only `/opt/venv` into a clean `python:3.12-slim`
+runtime — so `build-essential`, apt lists, and the pip cache never reach the
+shipped image. The naive single stage keeps all of it.
+
+Multi-stage build time: ~110 s cold.
+
 ## Reading the numbers
 
 The p50→p99 spread (361 ms → 2478 ms) is the signal, not noise. `/v1/predict`
