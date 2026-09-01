@@ -34,3 +34,17 @@ def test_ready_503_before_startup(client_factory):
     client = TestClient(create_app(), raise_server_exceptions=False)
     r = client.get("/v1/ready")
     assert r.status_code == 503
+
+
+@pytest.mark.integration
+def test_health_and_lifespan(real_model, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from fraud_service.api import app as app_module
+    monkeypatch.setattr(app_module.SklearnModel, "load",
+                        classmethod(lambda cls, *a, **k: real_model))
+
+    with TestClient(app_module.create_app()) as client:
+        assert client.get("/v1/health").json()["status"] == "ok"
+        assert client.get("/v1/ready").status_code == 200
+        assert client.get("/v1/health").headers["X-Trace-Id"]
