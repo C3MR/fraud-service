@@ -2,6 +2,7 @@
 domain.entities.Transaction on purpose: this shape can change (API v2)
 without touching what "a transaction" means internally, and vice versa."""
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -20,7 +21,7 @@ class PredictRequest(BaseModel):
 
     @field_validator("amount_sar", mode="before")
     @classmethod
-    def reject_bool_amount(cls, v):
+    def reject_bool_amount(cls, v: Any) -> Any:
         # bool is a subclass of int in Python - JSON true/false would
         # otherwise silently coerce to 1.0/0.0 and pass the gt/le checks.
         if isinstance(v, bool):

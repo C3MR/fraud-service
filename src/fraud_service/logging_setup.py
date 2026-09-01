@@ -4,11 +4,12 @@ import sys
 from typing import Any
 
 import structlog
+from structlog.typing import EventDict, WrappedLogger
 
 SENSITIVE_KEYS = {"password", "token", "secret", "authorization", "national_id", "card_number"}
 
 
-def _mask_sensitive(logger: Any, method_name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
+def _mask_sensitive(logger: WrappedLogger, method_name: str, event_dict: EventDict) -> EventDict:
     """Defensive masking: even if someone logs a secret, it leaves masked."""
     for key in list(event_dict):
         if key.lower() in SENSITIVE_KEYS:

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import joblib
 import pandas as pd
@@ -7,7 +8,7 @@ from fraud_service.domain.entities import FeatureVector
 
 
 class SklearnModel:
-    def __init__(self, pipeline, model_version: str) -> None:
+    def __init__(self, pipeline: Any, model_version: str) -> None:
         self._pipeline = pipeline
         self.model_version = model_version
 

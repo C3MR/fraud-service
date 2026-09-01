@@ -3,17 +3,19 @@ now for the HTTP entrypoint. The model loads ONCE, here, in lifespan -
 never at import time, never per-request."""
 import time
 import uuid
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import UTC
 
 import structlog
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from fraud_service.adapters.sklearn_model import SklearnModel
 from fraud_service.api.routes import router
 from fraud_service.config import Settings
+from fraud_service.domain.entities import Channel, FeatureVector, Transaction
 from fraud_service.logging_setup import configure_logging, get_logger
 from fraud_service.service.scorer import FraudScorer
 
@@ -21,8 +23,8 @@ log = get_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    settings = Settings()
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    settings = Settings()  # type: ignore[call-arg]
     configure_logging(settings.log_level)
     # Effective-config visibility: one line, never secrets, huge payoff
     # during an incident (this is what catches config-drift).
@@ -47,7 +49,7 @@ def create_app() -> FastAPI:
     app.include_router(router, prefix="/v1")
 
     @app.middleware("http")
-    async def trace_and_time(request: Request, call_next):
+    async def trace_and_time(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         trace_id = uuid.uuid4().hex[:16]
         request.state.trace_id = trace_id
         structlog.contextvars.clear_contextvars()
@@ -74,12 +76,11 @@ def create_app() -> FastAPI:
     return app
 
 
-def _warmup_features():
+def _warmup_features() -> FeatureVector:
     from datetime import datetime
 
-    from fraud_service.domain.entities import Transaction
     return Transaction(
-        transaction_id="WARMUP-0000", amount_sar=100.0, channel="pos",
+        transaction_id="WARMUP-0000", amount_sar=100.0, channel=Channel.POS,
         merchant_category="GROCERY", customer_id="warmup",
         timestamp=datetime.now(UTC)).to_features()
 
