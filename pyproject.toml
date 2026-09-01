@@ -8,6 +8,10 @@ dependencies = [
     "scikit-learn",
     "joblib",
     "pydantic>=2",
+    "fastapi[standard]",
+    "uvicorn",
+    "pydantic-settings",
+    "structlog",
 ]
 
 [build-system]
@@ -18,7 +22,7 @@ build-backend = "hatchling.build"
 packages = ["src/fraud_service"]
 
 [project.optional-dependencies]
-dev = ["httpx", "pytest", "pytest-cov", "ruff", "mypy"]
+dev = ["httpx", "pytest", "pytest-cov", "ruff", "mypy", "import-linter"]
 
 [tool.pytest.ini_options]
 addopts = "-q --strict-markers --cov=fraud_service --cov-branch --cov-report=term-missing"
@@ -39,3 +43,23 @@ omit = [
 
 [tool.coverage.report]
 fail_under = 80
+
+[tool.importlinter]
+root_package = "fraud_service"
+
+[[tool.importlinter.contracts]]
+name = "Clean architecture layers"
+type = "layers"
+layers = [
+    "fraud_service.api",
+    "fraud_service.adapters",
+    "fraud_service.service",
+    "fraud_service.domain",
+]
+# domain imports nothing above it; violations fail CI, not code review
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
